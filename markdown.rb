@@ -151,9 +151,9 @@ module Markdown
             end
 
             def self.parse(string, converters)
-                if capture = string.slice!(/\A\*.*(\n([[:blank:]]|\*).*)*/)
+                if capture = string.slice!(/\A\*[[:blank:]]+.*(\n([[:blank:]]|\*).*)*/)
                     "<ul>#{self.parseItems(/\*/, capture, converters)}</ul>"
-                elsif capture = string.slice!(/\A[[:digit:]]\..*(\n([[:blank:]]|([[:digit:]]\.)).*)*/)
+                elsif capture = string.slice!(/\A[[:digit:]]\.[[:blank:]]+.*(\n([[:blank:]]|([[:digit:]]\.)).*)*/)
                     "<ol>#{self.parseItems(/[[:digit:]]\./, capture, converters)}</ol>"
                 elsif capture = string.slice!(/\A.+(\*|([[:digit:]]\.)).*\n/)
                     Markdown.convert(capture, converters.merge(self => false))
