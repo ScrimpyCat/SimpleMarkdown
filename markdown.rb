@@ -119,14 +119,16 @@ module Markdown
 
         class HorizontalRule < StandardMarkdown
             def self.parse(string, converters)
-                if capture = string.slice!(/\A *(-|\*)( {0,2}\1){2,} *\n/)
+                if capture = string.slice!(/\A *(-|\*)( {0,2}\1){2,} *(?![^\n])/)
                     "<hr />"
-                elsif capture = string.slice!(/\A.*?\n(?= *(-|\*)( {0,2}\1){2,} *\n)/)
+                elsif capture = string.slice!(/\A.*?\n(?= *(-|\*)( {0,2}\1){2,} *(?![^\n]))/)
                     Markdown.convert(capture, converters)
-                elsif capture = string.slice!(/\A *[^\S\n](-|\*)( {0,2}\1){2,} *\n/)
-                    Markdown.convert(capture, converters.merge(self => false))
                 else
-                    super
+                    if !(capture = string.slice!(/^.*?(?=\n *(-|\*)( {0,2}\1){2,} *(?![^\n]))/m))
+                        capture = string.slice!(0..-1)
+                    end
+
+                    Markdown.convert(capture, converters.merge(self => false)) 
                 end
             end
         end
