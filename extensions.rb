@@ -63,7 +63,7 @@ module Extension
     class ExecBlock < Block
         place_before(Markdown)
         def self.identifier
-            /@ruby[[:space:]]*/
+            /@ruby[[:space:]]*/m
         end
 
         def self.execute(string, converters, block_range, body_range)
@@ -75,7 +75,7 @@ module Extension
     class StyleBlock < Block
         place_before(Markdown)
         def self.identifier
-            /@style.*?/
+            /@style.*?/m
         end
 
         def self.execute(string, converters, block_range, body_range)
