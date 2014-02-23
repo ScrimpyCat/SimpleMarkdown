@@ -147,7 +147,7 @@ module Markdown
                 elsif capture = string.slice!(/\A.*?\n(?= *(-|\*)( {0,2}\1){2,} *(?![^\n]))/)
                     Markdown.convert(capture, converters)
                 else
-                    if !(capture = string.slice!(/^.*?(?=\n *(-|\*)( {0,2}\1){2,} *(?![^\n]))/m))
+                    if !(capture = string.slice!(/^.*?(?=\n[[:space:]]*\n *(-|\*)( {0,2}\1){2,} *(?![^\n]))/m))
                         capture = string.slice!(0..-1)
                     end
 
