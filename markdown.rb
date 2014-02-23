@@ -14,10 +14,15 @@ module Markdown
         while string.length > 0
             result = ""
             converter_list.each { |step|
-                result << step.parse(string, converters)
+                if (r = step.parse(string, converters)) == :empty
+                    result = :empty
+                else
+                    result << r
+                end
+
                 break if result.length > 0
             }
-            converted_string << (result.length == 0 ? string.slice!(0,1) : result)
+            converted_string << (result.length == 0 ? string.slice!(0,1) : result) if result != :empty
         end
 
         converted_string
@@ -180,7 +185,8 @@ module Markdown
         class Paragraph < StandardMarkdown
             def self.parse(string, converters)
                 if capture = string.slice!(/\A(.|\n)*?\n{2,}/) || capture = string.slice!(/\A(.|\n)*(\n|\z)/)
-                    "<p>#{Markdown.convert(capture.strip, converters.merge(self => false)).gsub(/\n/, ' ')}</p>"
+                    capture.strip!
+                    capture.length > 0 ? "<p>#{Markdown.convert(capture, converters.merge(self => false)).gsub(/\n/, ' ')}</p>" : :empty
                 else
                     super
                 end
