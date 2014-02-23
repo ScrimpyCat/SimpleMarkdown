@@ -101,10 +101,13 @@ module Markdown
                             return "<h#{i}>#{Markdown.convert(capture[i..-1], converters.merge(Markdown::Standard::Paragraph => false))}</h#{i}>"
                         end
                     }
-                elsif string[/^[^\S\n]\#/]
-                    Markdown.convert(string.slice!(/^[^\S\n]\#.*?$(\n(?=\#))?/).gsub(/\#*$/, ""), converters.merge(self => false))
                 else
-                    super
+                    if !(capture = string.slice!(/^.*?((?=\n\#)|(?=\n.*?\n(=|-)+(?![^\n])))/m))
+                        capture = string.slice!(0..-1)
+                    end
+
+
+                    Markdown.convert(capture, converters.merge(self => false))
                 end
             end
         end
