@@ -21,11 +21,11 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-module Markdown
+module SimpleMarkdown
     def convert(string, converters = :all)
         return "" if string == nil
 
-        #converters can equal :all, :standard, :extended, { :all => true, Markdown::Standard::Paragraph => false }, Markdown::Standard::Paragraph => true
+        #converters can equal :all, :standard, :extended, { :all => true, SimpleMarkdown::Standard::Paragraph => false }, SimpleMarkdown::Standard::Paragraph => true
         converters = { converters => true } if converters.class == Symbol
 
         converter_list = Converter.converters
@@ -107,7 +107,7 @@ module Markdown
     end
 
     module Standard
-        class StandardMarkdown < Markdown::Converter
+        class StandardMarkdown < SimpleMarkdown::Converter
             skip_step
             def self.can_use(converters)
                 super && (converters[:standard] != false)
@@ -118,15 +118,15 @@ module Markdown
             def self.parse(string, converters)
                 if capture = string.slice!(/\A.*?\n=+(?!.)/)
                     string.slice!(0,1)
-                    "<h1>#{Markdown.convert(capture[/\A.*/], converters.merge(Markdown::Standard::Paragraph => false))}</h1>"
+                    "<h1>#{SimpleMarkdown.convert(capture[/\A.*/], converters.merge(SimpleMarkdown::Standard::Paragraph => false))}</h1>"
                 elsif capture = string.slice!(/\A.*?\n-+(?!.)/)
                     string.slice!(0,1)
-                    "<h2>#{Markdown.convert(capture[/\A.*/], converters.merge(Markdown::Standard::Paragraph => false))}</h2>"
+                    "<h2>#{SimpleMarkdown.convert(capture[/\A.*/], converters.merge(SimpleMarkdown::Standard::Paragraph => false))}</h2>"
                 elsif string.chr == '#'
                     6.downto(1).each { |i|
                         if capture = string.slice!(/\A\#{#{i}}.*/)
                             string.slice!(0,1)
-                            return "<h#{i}>#{Markdown.convert(capture[i..-1], converters.merge(Markdown::Standard::Paragraph => false))}</h#{i}>"
+                            return "<h#{i}>#{SimpleMarkdown.convert(capture[i..-1], converters.merge(SimpleMarkdown::Standard::Paragraph => false))}</h#{i}>"
                         end
                     }
                 else
@@ -135,7 +135,7 @@ module Markdown
                     end
 
 
-                    Markdown.convert(capture, converters.merge(self => false))
+                    SimpleMarkdown.convert(capture, converters.merge(self => false))
                 end
             end
         end
@@ -145,13 +145,13 @@ module Markdown
                 if capture = string.slice!(/\A *(-|\*)( {0,2}\1){2,} *(?![^\n])/)
                     "<hr />"
                 elsif capture = string.slice!(/\A.*?\n(?= *(-|\*)( {0,2}\1){2,} *(?![^\n]))/)
-                    Markdown.convert(capture, converters)
+                    SimpleMarkdown.convert(capture, converters)
                 else
                     if !(capture = string.slice!(/^.*?(?=\n[[:space:]]*\n *(-|\*)( {0,2}\1){2,} *(?![^\n]))/m))
                         capture = string.slice!(0..-1)
                     end
 
-                    Markdown.convert(capture, converters.merge(self => false)) 
+                    SimpleMarkdown.convert(capture, converters.merge(self => false)) 
                 end
             end
         end
@@ -159,9 +159,9 @@ module Markdown
         class PhraseEmphasis < StandardMarkdown
             def self.parse(string, converters)
                 if capture = string.slice!(/\A\*\*.*?\*\*/) || capture = string.slice!(/\A__.*?__/)
-                    "<strong>#{Markdown.convert(capture[2..-3], converters)}</strong>"
+                    "<strong>#{SimpleMarkdown.convert(capture[2..-3], converters)}</strong>"
                 elsif capture = string.slice!(/\A\*.*?\*/) || capture = string.slice!(/\A_.*?_/)
-                    "<em>#{Markdown.convert(capture[1..-2], converters)}</em>"
+                    "<em>#{SimpleMarkdown.convert(capture[1..-2], converters)}</em>"
                 else
                     super
                 end
@@ -179,7 +179,7 @@ module Markdown
                             content = content.join("\n")
                         end
 
-                        "<li>#{Markdown.convert(item[/.*/], converters.merge(Markdown::Standard::Paragraph => false))}#{Markdown.convert(content, converters)}</li>"
+                        "<li>#{SimpleMarkdown.convert(item[/.*/], converters.merge(SimpleMarkdown::Standard::Paragraph => false))}#{SimpleMarkdown.convert(content, converters)}</li>"
                 }.join
             end
 
@@ -189,7 +189,7 @@ module Markdown
                 elsif capture = string.slice!(/\A[[:digit:]]\.[[:blank:]]+.*(\n([[:blank:]]|([[:digit:]]\.)).*)*/)
                     "<ol>#{self.parseItems(/[[:digit:]]\./, capture, converters)}</ol>"
                 elsif capture = string.slice!(/\A.+(\*|([[:digit:]]\.)).*\n/)
-                    Markdown.convert(capture, converters.merge(self => false))
+                    SimpleMarkdown.convert(capture, converters.merge(self => false))
                 else
                     super
                 end
@@ -200,7 +200,7 @@ module Markdown
             def self.parse(string, converters)
                 if capture = string.slice!(/\A(\n*( {4,}|\t{1,}).*)+/)
                     capture.slice!(/^\n/)
-                    capture = "<pre><code>#{Markdown.convert(capture.gsub!(/( {4}|\t{1})(?![ \t])/, ""), Markdown::HTMLEntities::LiteralToHTMLEntity => true)}</code></pre>"
+                    capture = "<pre><code>#{SimpleMarkdown.convert(capture.gsub!(/( {4}|\t{1})(?![ \t])/, ""), SimpleMarkdown::HTMLEntities::LiteralToHTMLEntity => true)}</code></pre>"
                 else
                     super
                 end
@@ -211,7 +211,7 @@ module Markdown
             def self.parse(string, converters)
                 if capture = string.slice!(/\A(.|\n)*?\n{2,}/) || capture = string.slice!(/\A(.|\n)*(\n|\z)/)
                     capture.strip!
-                    capture.length > 0 ? "<p>#{Markdown.convert(capture, converters.merge(self => false)).gsub(/\n/, ' ')}</p>" : :empty
+                    capture.length > 0 ? "<p>#{SimpleMarkdown.convert(capture, converters.merge(self => false)).gsub(/\n/, ' ')}</p>" : :empty
                 else
                     super
                 end
@@ -221,9 +221,9 @@ module Markdown
         class Blockquote < StandardMarkdown
             def self.parse(string, converters)
                 if capture = string.slice!(/\A>.*(\n([[:blank:]]|>).*)*/)
-                    "<blockquote>#{Markdown.convert(capture.gsub!(/^>[[:blank:]]*/, ""), converters.merge(Markdown::Standard::Paragraph => true))}</blockquote>"
+                    "<blockquote>#{SimpleMarkdown.convert(capture.gsub!(/^>[[:blank:]]*/, ""), converters.merge(SimpleMarkdown::Standard::Paragraph => true))}</blockquote>"
                 elsif capture = string.slice!(/\A.+>.*\n*/)
-                    Markdown.convert(capture, converters.merge(self => false))
+                    SimpleMarkdown.convert(capture, converters.merge(self => false))
                 else
                     super
                 end
@@ -234,8 +234,8 @@ module Markdown
             def self.parse(string, converters)
                 if capture = string.slice!(/\A(?<link>\[(.*?\g<link>.*?|.*?)\]\(.*?\))/)
                     text = capture[/\A\[.*\]/][1..-2]
-                    link = capture[text.length+3..-2].split(/ /, 2).map { |s| Markdown.convert(s, converters.merge(:standard => false)) }
-                    text = Markdown.convert(text, converters)
+                    link = capture[text.length+3..-2].split(/ /, 2).map { |s| SimpleMarkdown.convert(s, converters.merge(:standard => false)) }
+                    text = SimpleMarkdown.convert(text, converters)
                     link = "href=\"#{link[0]}\"" << (link.count == 2? " title=#{link[1]}" : "")
 
                     "<a #{link}>#{text}</a>"
@@ -249,8 +249,8 @@ module Markdown
             def self.parse(string, converters)
                 if capture = string.slice!(/\A!(?<link>\[(.*?\g<link>.*?|.*?)\]\(.*?\))/)
                     text = capture[/\A!\[.*\]/][2..-2]
-                    link = capture[text.length+4..-2].split(/ /, 2).map { |s| Markdown.convert(s, converters.merge(:standard => false)) }
-                    text = Markdown.convert(text, converters.merge(:standard => false))
+                    link = capture[text.length+4..-2].split(/ /, 2).map { |s| SimpleMarkdown.convert(s, converters.merge(:standard => false)) }
+                    text = SimpleMarkdown.convert(text, converters.merge(:standard => false))
                     link = "src=\"#{link[0]}\"" << (text.length > 0 ? " alt=\"#{text}\"" : "") << (link.count == 2? " title=#{link[1]}" : "")
 
                     "<img #{link} />"
@@ -263,10 +263,10 @@ module Markdown
         class CodeSpan < StandardMarkdown
             def self.parse(string, converters)
                 if capture = string.slice!(/\A`[^`].*?`/)
-                    "<code>#{Markdown.convert(capture[1..-2].strip, Markdown::HTMLEntities::LiteralToHTMLEntity => true)}</code>"
+                    "<code>#{SimpleMarkdown.convert(capture[1..-2].strip, SimpleMarkdown::HTMLEntities::LiteralToHTMLEntity => true)}</code>"
                 elsif capture = string.slice!(/\A(`+)[^`].*\1/m)
                     size = capture[/\A(`+)(?=[^`].*\1)/m].length
-                    "<code>#{Markdown.convert(capture[(size)..-(size+1)].strip, Markdown::HTMLEntities::LiteralToHTMLEntity => true)}</code>"
+                    "<code>#{SimpleMarkdown.convert(capture[(size)..-(size+1)].strip, SimpleMarkdown::HTMLEntities::LiteralToHTMLEntity => true)}</code>"
                 else
                     super
                 end
@@ -287,7 +287,7 @@ module Markdown
             ">" => "gt"
         }
 
-        class LiteralToHTMLEntity < Markdown::Converter
+        class LiteralToHTMLEntity < SimpleMarkdown::Converter
             def self.can_use(converters)
                 self == LiteralToHTMLEntity ? converters[self] == true : super
             end
@@ -305,7 +305,7 @@ module Markdown
         class SafeLiteralToHTMLEntity < LiteralToHTMLEntity
             def self.parse(string, converters)
                 if capture = string.slice!(/\A<.+>/)
-                    Markdown.convert(capture, converters.merge(self => false))
+                    SimpleMarkdown.convert(capture, converters.merge(self => false))
                 elsif !string[/\A&[[:alnum:]]+;/] && !string[/\A&\#[[:xdigit:]]+;/] #&& !string[/\A<.+>/]
                     super
                 else
@@ -316,7 +316,7 @@ module Markdown
     end
 
     module Extended
-        class ExtendedMarkdown < Markdown::Converter
+        class ExtendedMarkdown < SimpleMarkdown::Converter
             skip_step
             def self.can_use(converters)
                 super && (converters[:extended] != false)
@@ -335,7 +335,7 @@ module Markdown
                         align = alignment.shift
                         align = defaultAlignment if align == nil
 
-                        tableRow << "<#{type}#{align}>#{Markdown.convert(column, converters)}</#{type}>"
+                        tableRow << "<#{type}#{align}>#{SimpleMarkdown.convert(column, converters)}</#{type}>"
                     end
                 }
 
@@ -362,7 +362,7 @@ module Markdown
 
             def self.parse(string, converters)
                 if capture = string.slice!(/\A.*\|.*\n(\|?[ :-]*?-[ :-]*){1,}.*(\n.*\|.*)*/)
-                    convert = converters.merge(self => false, Markdown::Standard::Paragraph => false)
+                    convert = converters.merge(self => false, SimpleMarkdown::Standard::Paragraph => false)
                     table = "<table>"
                     rows = capture.split("\n")
 
@@ -377,7 +377,7 @@ module Markdown
                     table << "</tbody>"
                     table << "</table>"
                 elsif capture = string.slice!(/\A(\|?[ :-]*?-[ :-]*){1,}.*(\n.*\|.*)+/)
-                    convert = converters.merge(self => false, Markdown::Standard::Paragraph => false)
+                    convert = converters.merge(self => false, SimpleMarkdown::Standard::Paragraph => false)
                     table = "<table>"
                     rows = capture.split("\n")
 
