@@ -130,12 +130,7 @@ module SimpleMarkdown
                         end
                     }
                 else
-                    if !(capture = string.slice!(/^.*?((?=\n\#)|(?=\n.*?\n(=|-)+(?![^\n])))/m))
-                        capture = string.slice!(0..-1)
-                    end
-
-
-                    SimpleMarkdown.convert(capture, converters.merge(self => false))
+                    super
                 end
             end
         end
