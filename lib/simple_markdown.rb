@@ -227,7 +227,7 @@ module SimpleMarkdown
 
         class Link < StandardMarkdown
             def self.parse(string, converters)
-                if capture = string.slice!(/\A(?<link>\[(.*?\g<link>.*?|.*?)\]\(.*?\))/)
+                if capture = string.slice!(/\A\[.*?\]\(.*?\)/)
                     text = capture[/\A\[.*\]/][1..-2]
                     link = capture[text.length+3..-2].split(/ /, 2).map { |s| SimpleMarkdown.convert(s, converters.merge(:standard => false)) }
                     text = SimpleMarkdown.convert(text, converters)
@@ -242,7 +242,7 @@ module SimpleMarkdown
 
         class Image < StandardMarkdown
             def self.parse(string, converters)
-                if capture = string.slice!(/\A!(?<link>\[(.*?\g<link>.*?|.*?)\]\(.*?\))/)
+                if capture = string.slice!(/\A!\[.*?\]\(.*?\)/)
                     text = capture[/\A!\[.*\]/][2..-2]
                     link = capture[text.length+4..-2].split(/ /, 2).map { |s| SimpleMarkdown.convert(s, converters.merge(:standard => false)) }
                     text = SimpleMarkdown.convert(text, converters.merge(:standard => false))
