@@ -259,9 +259,6 @@ module SimpleMarkdown
             def self.parse(string, converters)
                 if capture = string.slice!(/\A`[^`].*?`/)
                     "<code>#{SimpleMarkdown.convert(capture[1..-2].strip, SimpleMarkdown::HTMLEntities::LiteralToHTMLEntity => true)}</code>"
-                elsif capture = string.slice!(/\A(`+)[^`].*\1/m)
-                    size = capture[/\A(`+)(?=[^`].*\1)/m].length
-                    "<code>#{SimpleMarkdown.convert(capture[(size)..-(size+1)].strip, SimpleMarkdown::HTMLEntities::LiteralToHTMLEntity => true)}</code>"
                 else
                     super
                 end
@@ -315,6 +312,17 @@ module SimpleMarkdown
             skip_step
             def self.can_use(converters)
                 super && (converters[:extended] != false)
+            end
+        end
+
+        class MultilineCodeSpan < ExtendedMarkdown
+            place_before(Standard)
+            def self.parse(string, converters)
+                if capture = string.slice!(/\A`{3}.*?`{3}/m)
+                    "<pre><code>#{SimpleMarkdown.convert(capture[3..-4].strip, SimpleMarkdown::HTMLEntities::LiteralToHTMLEntity => true)}</code></pre>"
+                else
+                    super
+                end
             end
         end
 
